@@ -2,11 +2,7 @@
 SAW
 """
 import numpy as np
-# from numba import jit
-# import matplotlib.pyplot as plt
-# import time
-
-#np.seterr(under='warn', over='warn', divide="warn")
+# np.seterr(under='warn', over='warn', divide="warn")
 
 
 class random_walk_model():
@@ -25,33 +21,26 @@ class random_walk_model():
         self.sigma_i = None
         self.sigma_j = None
 
-        self.ready = False
-
+        # TODO: this could be an opportunity to implement the .from_dict() method
         self.params_from_dict(parameters)
 
-        # computed values
+        # precomputed values
         self.grid_ii, self.grid_jj = np.mgrid[0:self.L, 0:self.L]
 
         self.zeroact = -1.0
+        # TODO: Allow ability to set activation field
         self.activation_map = \
             np.ones((self.L, self.L)) * np.power(10, self.zeroact)
 
         self.stepping_prob = None
-        # self.make_stepping_prob()
 
+        # can be set via parameters dict
         if self.start_pos is None:
             c = int((self.L - 1) / 2)
             self.start_pos = np.array([c, c])
+
+        # does cleanup of trajectory
         self.reset_trajectory()
-
-
-
-    def reset_trajectory(self):
-        self.it = 0
-        self.current_pos = np.array(self.start_pos)
-        self.trajectory = np.zeros((20000, 2), dtype=int)
-        self.trajectory[self.it] = self.current_pos
-        self.escaped = False
 
 
     def set_start_pos(self, start_pos):
@@ -60,28 +49,26 @@ class random_walk_model():
 
 
     def params_from_dict(self, D):
+        """Takes values from a dictionary and stored them in class variables
+
+        Parameters
+        ----------
+        D : dict
+            Dictionary of all parameters
+        """
         for key, value in D.items():
             setattr(self, key, value)
-        self.ready = True
 
 
-# could do getters and setters and precompute step distribution
-
-
-    def make_stepping_prob(self):
-        """precompute stepping prior. Walker has a higher probability of taking
-        short steps than long ones.
+    def reset_trajectory(self):
         """
-        i = j = np.linspace(int(0), int(self.L),
-                            num=int(self.L) + 1, dtype=int)
-        ii, jj = np.meshgrid(i, j)
+        Reset the walker's memory of the trajectory and iteration number.
+        """
+        self.it = 0
+        self.current_pos = np.array(self.start_pos)
+        self.trajectory = np.zeros((20000, 2), dtype=int)
+        self.trajectory[self.it] = self.current_pos
 
-        rad = ((((ii - self.current_pos[0]) ** 2) / (self.sigma_i ** 2))
-             + (((jj - self.current_pos[1]) ** 2) / (self.sigma_j ** 2))).T
-
-        self.stepping_prob = ((1 / (2 * np.pi * self.sigma_i * self.sigma_j))
-                              * np.exp(-(rad / (2 * (1 ** 2)))))
-        self.stepping_prob = self.stepping_prob / self.stepping_prob.sum()
 
     ###########################################################################
     # The CORE
@@ -103,27 +90,42 @@ class random_walk_model():
         float
             log likelihood
         """
-        # relax_coef = (1.0 - np.power(10, self.gamma))
-
         if sim:
             assert dat is None
-
-        #self.activation_map *= self.relax_coef
+        # Compute the probability of the movement given the model
         self.make_stepping_prob()
+        # selection_map = self.stepping_prob * self.activation_map
+        # selection_map /= selection_map.sum()
 
+        # Either simulate by selecting the next position or evaluate the
+        # probability of a given position
         if sim:
             next_pos, lik = self.select_position()
         else:
             next_pos, lik = self.lookup_position(dat)
 
+        # complete the iteration by taking the next step and advancimng the
+        # counter
         self.trajectory[self.it + 1] = next_pos
         self.it += 1
         self.current_pos = next_pos
 
+        # As it is most common to work with log likelihoods, and we cant
+        # evaluate log(0), we set the probability to *almost* zero.
         if lik == 0:
             lik = np.finfo(np.float64).eps
-
         return np.log(lik)
+
+
+    def make_stepping_prob(self):
+        rad = ((((self.grid_ii - self.current_pos[0]) ** 2)
+                / (self.sigma_i ** 2))
+               + (((self.grid_jj - self.current_pos[1]) ** 2)
+                  / (self.sigma_j ** 2)))
+
+        self.stepping_prob = ((1 / (2 * np.pi * self.sigma_i * self.sigma_j))
+                              * np.exp(-(rad / (2 * (1 ** 2)))))
+        self.stepping_prob = self.stepping_prob / self.stepping_prob.sum()
 
 
     def lookup_position(self, dat):
