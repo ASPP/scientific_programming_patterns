@@ -27,12 +27,11 @@ class random_walk_model():
         # precomputed values
         self.grid_ii, self.grid_jj = np.mgrid[0:self.L, 0:self.L]
 
-        self.zeroact = -1.0
-        # TODO: Allow ability to set activation field
-        self.activation_map = \
-            np.ones((self.L, self.L)) * np.power(10, self.zeroact)
+        self.activation_map = np.ones((self.L, self.L))
+        self.activation_map /= self.activation_map.sum()
 
         self.stepping_prob = None
+        self.selection_map = None
 
         # can be set via parameters dict
         if self.start_pos is None:
@@ -41,6 +40,10 @@ class random_walk_model():
 
         # does cleanup of trajectory
         self.reset_trajectory()
+
+
+    def set_activation_map(self, activation_map):
+        self.activation_map = activation_map
 
 
     def set_start_pos(self, start_pos):
@@ -94,8 +97,8 @@ class random_walk_model():
             assert dat is None
         # Compute the probability of the movement given the model
         self.make_stepping_prob()
-        # selection_map = self.stepping_prob * self.activation_map
-        # selection_map /= selection_map.sum()
+        self.selection_map = self.stepping_prob * self.activation_map
+        self.selection_map /= self.selection_map.sum()
 
         # Either simulate by selecting the next position or evaluate the
         # probability of a given position
@@ -142,7 +145,7 @@ class random_walk_model():
         list
             next position and the likelihood given the model
         """
-        lik = self.stepping_prob[dat[0], dat[1]]
+        lik = self.selection_map[dat[0], dat[1]]
         return [dat, lik]
 
 
@@ -160,8 +163,8 @@ class random_walk_model():
             next position and the likelihood given the model
         """
         r = self.RS.rand()
-        cu = np.cumsum(self.stepping_prob)
-        cu = cu.reshape(self.stepping_prob.shape)
+        cu = np.cumsum(self.selection_map)
+        cu = cu.reshape(self.selection_map.shape)
         inew, jnew = np.argwhere(cu >= r)[0]
-        lik = self.stepping_prob[inew, jnew]
+        lik = self.selection_map[inew, jnew]
         return([inew, jnew], lik)
