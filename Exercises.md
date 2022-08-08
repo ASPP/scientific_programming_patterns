@@ -1,6 +1,12 @@
-Exercises:
+# Random Walk
+The human eye is never perfectly still. Even when looking at just one point, the center of the visual field is shifted around on the retina by a jittery drift movement. This drift has a few interesting statistical properties, speed of movement, preference for horizontal over vertical motion, and self-avoidance.
+
+We are going to build a simplified version of a eye movement drift model! We will (git) stash the self-avoidance for now, and focus just on making a walker that moves across a field over time. At each time step, or iteration, the walker choses the next position. For this choice we assume it uses two pieces of information:
+1. it can only move a limited distance in a single particular timestep. The step distribution is a two dimensional Gaussian around the walker's current position- it prefers to move to a nearby/adjacent gridpoint and has a very low probability of jumping far away.
+2. The walker is also influenced by the activation landscape that it is on. If the activation landscape is flat, only 1. matters. If the activation landscape has a gradient, it walks toward the minimum/maximum.
 
 
+## Exercises
 1. Turn functions into class. Write a grid search.
 -> learning: how to write a class
 
