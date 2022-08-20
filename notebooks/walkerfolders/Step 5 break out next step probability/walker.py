@@ -90,7 +90,7 @@ def labyrinth_context_map_builder(size):
     return context_map
 
 # -----------------------------
-# CONTEXT MAP BUILDERS
+# NEXT STEP BUILDERS
 # -----------------------------
 # Classes to compute next step proposal maps
 # Next step proposal classes have a method `next_step_proposal` that takes the
