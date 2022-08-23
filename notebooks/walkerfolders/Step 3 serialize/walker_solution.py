@@ -1,22 +1,42 @@
-import numpy as np
+import json
+import time
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Walker:
     """ The Walker knows how to walk at random on a context map. """
 
-    def __init__(self, sigma_i, sigma_j, size, map_type='flat'):
+    def __init__(self, sigma_i, sigma_j, size, context_map):
         self.sigma_i = sigma_i
         self.sigma_j = sigma_j
         self.size = size
+        self.context_map = context_map
+        # Pre-compute a 2D grid of coordinates for efficiency
+        self._grid_ii, self._grid_jj = np.mgrid[0:size, 0:size]
 
+    # --- Walker class interface
+
+    @classmethod
+    def from_json(cls, path):
+        """ Read an instance of Walker from file. """
+        with open(path, 'r') as f:
+            inputs = json.load(f)
+            context_map = np.load(inputs["context_map_path"])
+            walker =  cls(inputs["sigma_i"], inputs["sigma_j"], inputs["size"], context_map)
+        return walker
+
+    @classmethod
+    def from_context_map_type(cls, sigma_i, sigma_j, size, map_type):
+        """ Create an instance of Walker with a context map defined by type."""
         if map_type == 'flat':
             context_map = np.ones((size, size))
         elif map_type == 'hills':
             grid_ii, grid_jj = np.mgrid[0:size, 0:size]
             i_waves = np.sin(grid_ii / 130) + np.sin(grid_ii / 10)
             i_waves /= i_waves.max()
-            j_waves = np.sin(grid_jj / 100) + np.sin(grid_jj / 50) + \
+            j_waves = np.sin(grid_jj / 100) + np.sin(grid_jj / 50) +\
                 np.sin(grid_jj / 10)
             j_waves /= j_waves.max()
             context_map = j_waves + i_waves
@@ -33,13 +53,35 @@ class Walker:
             context_map[110:120, 0:190] = 0
             context_map[120:size, 30:40] = 0
             context_map[180:190, 50:60] = 0
-        context_map /= context_map.sum()
-        self.context_map = context_map
 
-        # Pre-compute a 2D grid of coordinates for efficiency
-        self._grid_ii, self._grid_jj = np.mgrid[0:size, 0:size]
+            context_map /= context_map.sum()
+        return cls(sigma_i, sigma_j, size, context_map)
 
     # --- Walker public interface
+
+    def to_json(self):
+        """ Write an instance of Walker to file.
+
+        The activation map, which is a numerical array and could potentially be very large, is
+        saved separately in binary format.
+        """
+        curr_time = (time.strftime("%Y%m%d-%H%M%S"))
+        filename_root = 'walker'
+        json_path = f"{filename_root}_{curr_time}.json"
+        context_map_path = f"{filename_root}_context_map_{curr_time}.npy"
+
+        # Save the JSON file and the activation map separately
+        # Discussion:
+        serialize_dict = {"sigma_i": self.sigma_i,
+                          "sigma_j": self.sigma_j,
+                          "size": self.size,
+                          "context_map_path": context_map_path}
+        with open(json_path, 'w') as f:
+            json.dump(serialize_dict, f)
+        np.save(context_map_path, self.context_map)
+
+        print(f'Walker serialized to {json_path}')
+        return json_path
 
     def sample_next_step(self, current_i, current_j, random_state=np.random):
         """ Sample a new position for the walker. """
