@@ -1,0 +1,9 @@
+{
+    "seed": 42,
+    "sigma_i": 3,
+    "sigma_j": 4,
+    "size": 200,
+    "map_type": "hills",
+    "start_ij": [50, 100],
+    "n_iterations": 1000
+}

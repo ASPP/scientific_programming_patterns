@@ -1,7 +1,8 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import json
 import time
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Walker:
@@ -15,73 +16,54 @@ class Walker:
         # Pre-compute a 2D grid of coordinates for efficiency
         self._grid_ii, self._grid_jj = np.mgrid[0:size, 0:size]
 
+    # --- Walker class interface
+
     @classmethod
     def from_json(cls, path):
-        # load input parameters
+        """ Read an instance of Walker from file. """
         with open(path, 'r') as f:
             inputs = json.load(f)
-        # create instance
-        if "context_map_path" in inputs:
             context_map = np.load(inputs["context_map_path"])
-            return cls(inputs["sigma_i"], inputs["sigma_j"], inputs["size"],
-                       context_map)
-        elif "map_type" in inputs:
-            instance = cls.from_context_map_type(inputs["sigma_i"],
-                                                 inputs["sigma_j"],
-                                                 inputs["size"],
-                                                 inputs["map_type"])
-            return instance
+            walker = cls(inputs["sigma_i"], inputs["sigma_j"], inputs["size"], context_map)
+        return walker
 
+    @classmethod
+    def from_context_map_builder(cls, sigma_i, sigma_j, size,
+                                 context_map_builder):
+        """Initialize the context map from an external builder.
+
+        `builder` is a callable that takes a `size` as input parameter
+        and outputs a `size` x `size` numpy array of positive values.
+        """
+        context_map = context_map_builder(size)
+        context_map /= context_map.sum()
+        return cls(sigma_i, sigma_j, size, context_map)
+
+    # --- Walker public interface
 
     def to_json(self):
-        # decide on a convention for naming
+        """ Write an instance of Walker to file.
+
+        The activation map, which is a numerical array and could potentially be very large, is
+        saved separately in binary format.
+        """
         curr_time = (time.strftime("%Y%m%d-%H%M%S"))
-        json_path = f"walker_{curr_time}.json"
-        context_map_path = f"context_map_{curr_time}.npy"
-        # save the two files
-        np.save(context_map_path, self.context_map)
+        filename_root = 'walker'
+        json_path = f"{filename_root}_{curr_time}.json"
+        context_map_path = f"{filename_root}_context_map_{curr_time}.npy"
+
+        # Save the JSON file and the activation map separately
+        # Discussion:
         serialize_dict = {"sigma_i": self.sigma_i,
                           "sigma_j": self.sigma_j,
                           "size": self.size,
                           "context_map_path": context_map_path}
-
         with open(json_path, 'w') as f:
             json.dump(serialize_dict, f)
+        np.save(context_map_path, self.context_map)
 
-        print(f"Walker serialized to {json_path}")
+        print(f'Walker serialized to {json_path}')
         return json_path
-
-    @classmethod
-    def from_context_map_type(cls, sigma_i, sigma_j, size, map_type):
-        """ Create an instance of Walker with a context map defined by type."""
-        if map_type == 'flat':
-            context_map = np.ones((size, size))
-        elif map_type == 'hills':
-            grid_ii, grid_jj = np.mgrid[0:size, 0:size]
-            i_waves = np.sin(grid_ii / 130) + np.sin(grid_ii / 10)
-            i_waves /= i_waves.max()
-            j_waves = np.sin(grid_jj / 100) + np.sin(grid_jj / 50) +\
-                np.sin(grid_jj / 10)
-            j_waves /= j_waves.max()
-            context_map = j_waves + i_waves
-        elif map_type == 'labyrinth':
-            context_map = np.ones((size, size))
-            context_map[50:100, 50:60] = 0
-            context_map[20:89, 80:90] = 0
-            context_map[90:120, 0:10] = 0
-            context_map[120:size, 30:40] = 0
-            context_map[180:190, 50:60] = 0
-
-            context_map[50:60, 50:200] = 0
-            context_map[179:189, 80:130] = 0
-            context_map[110:120, 0:190] = 0
-            context_map[120:size, 30:40] = 0
-            context_map[180:190, 50:60] = 0
-
-            context_map /= context_map.sum()
-        return cls(sigma_i, sigma_j, size, context_map)
-
-    # --- Walker public interface
 
     def sample_next_step(self, current_i, current_j, random_state=np.random):
         """ Sample a new position for the walker. """

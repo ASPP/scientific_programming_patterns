@@ -1,1 +1,0 @@
-I estimated parameters at 20220820-164043The git repo was at commit c27bd4e75d1d5994fb350ad07755ed5737fe4341
