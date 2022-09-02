@@ -61,6 +61,11 @@ Walker saga
 # need to do the bookkeeping for i, j in case you want to create / simulate entire trajectories
 # changing the next step probability is going to be trouble
 
+- serialization
+# Open discussion: what happens when the class changes?
+# Discussion in to_json: what happens if the code breaks before the array is saved? What to do about it?
+
+
 - break out the context map initialization
 
 # the activation map initialization varies independently from the class
@@ -76,6 +81,9 @@ Walker saga
 - break out the next step probability (exercise)
 
 # ... let's say we want to have a rectangular, uniform next step distribution
+
+# talk about the fact that we can pass anything as long as you can call it as initializer(size)
+
 
 # The Walker class has less parameters!
 # its responsibilities are clearer
