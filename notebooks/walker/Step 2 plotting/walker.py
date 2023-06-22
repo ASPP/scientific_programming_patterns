@@ -57,6 +57,24 @@ class Walker:
 
         return i_next, j_next
 
+    def plot_trajectory(self, trajectory):
+        """ Plot a trajectory over a context map. """
+        trajectory = np.asarray(trajectory)
+        plt.matshow(self.context_map)
+        plt.plot(trajectory[:, 1], trajectory[:, 0], color='r')
+        plt.show()
+
+    def plot_trajectory_hexbin(self, trajectory):
+        """ Plot an hexagonal density map of a trajectory. """
+        trajectory = np.asarray(trajectory)
+        with plt.rc_context({'figure.figsize': (4, 4), 'axes.labelsize': 16, 
+                             'xtick.labelsize': 14, 'ytick.labelsize': 14}):
+            plt.hexbin(trajectory[:, 1], trajectory[:, 0], gridsize=30,
+                       extent=(0, 200, 0, 200), edgecolors='none', cmap='Reds')
+            plt.gca().invert_yaxis()
+            plt.xlabel('X')
+            plt.ylabel('Y')
+
     # --- Walker non-public interface
 
     def _next_step_proposal(self, current_i, current_j):
@@ -81,11 +99,3 @@ class Walker:
         next_step_probability = next_step_map * self.context_map
         next_step_probability /= next_step_probability.sum()
         return next_step_probability
-
-
-def plot_trajectory(trajectory, context_map):
-    """ Plot a trajectory over a context map. """
-    trajectory = np.asarray(trajectory)
-    plt.matshow(context_map)
-    plt.plot(trajectory[:, 1], trajectory[:, 0], color='r')
-    plt.show()
