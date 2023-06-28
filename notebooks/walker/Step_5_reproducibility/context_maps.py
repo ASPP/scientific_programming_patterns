@@ -37,10 +37,3 @@ def labyrinth_context_map_builder(size):
 
     return context_map
 
-
-# Register map builders
-map_builders = {
-    "flat": flat_context_map_builder,
-    "hills": hills_context_map_builder,
-    "labyrinth": labyrinth_context_map_builder,
-}

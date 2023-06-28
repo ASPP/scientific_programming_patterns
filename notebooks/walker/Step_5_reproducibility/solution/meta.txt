@@ -1,0 +1,2 @@
+I estimated parameters at 20230628-192022.
+The git repo was at commit 6a26566a46593a650ebfc86ebdbb28ee78ace079
