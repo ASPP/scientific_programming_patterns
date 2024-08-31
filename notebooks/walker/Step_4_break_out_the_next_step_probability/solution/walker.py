@@ -34,22 +34,6 @@ class Walker:
 
     # --- Walker non-public interface
 
-    def _next_step_proposal(self, current_i, current_j):
-        """ Create the 2D proposal map for the next step of the walker. """
-
-        # 2D Gaussian distribution , centered at current position,
-        # and with different standard deviations for i and j
-        grid_ii, grid_jj = self._grid_ii, self._grid_jj
-        sigma_i, sigma_j = self.sigma_i, self.sigma_j
-
-        rad = (
-            (((grid_ii - current_i) ** 2) / (sigma_i ** 2))
-            + (((grid_jj - current_j) ** 2) / (sigma_j ** 2))
-        )
-
-        p_next_step = np.exp(-(rad / 2.0)) / (2.0 * np.pi * sigma_i * sigma_j)
-        return p_next_step / p_next_step.sum()
-
     def _compute_next_step_probability(self, next_step_map):
         """ Compute the next step probability map from next step proposal and
         context map. """
