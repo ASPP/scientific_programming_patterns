@@ -1,0 +1,2 @@
+I estimated parameters at 20250925-122412.
+The git repo was at commit 3d3d3913ef9387b62bdd1d9a95e2051bf92401b0
