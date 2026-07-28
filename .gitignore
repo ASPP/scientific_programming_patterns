@@ -1,2 +1,4 @@
 .DS_Store
 *.npy
+.ipynb_checkpoints/
+__pycache__
