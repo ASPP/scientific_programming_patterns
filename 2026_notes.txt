@@ -1,0 +1,11 @@
+Notes after givin class in Mexico City, LatAm 2026
+
+In no particular order:
+- the class was less strong than usual; we decided to skip the inheritance vs. composition. P did an improv bit instead, where he showed how functions are also objects and that you can pass them around to change behavior (it was a basic calculator demo, with operation selected by user). Then showed the slide with the "add_block" and passing behavior in, and vaguely suggested this can be done to change a class behavior, just like the context maps change the data
+- we stayed in time and were not stressed
+- First exercise with classes: it was nice to show the three possible design choices regarding including `position` and `dt` in the class, and what consequences they have on flexibility. Definitely do that again!
+- An idea for Prague (to be discussed): phrase the initial Walker exercise (build class) as follow. 1) we have a mess of parameters and behavior, we'll build a class Walker; 2) go through the parameters and functions and decide if they belong to Walker or not; 3) leave comment
+- Exercise 3: text in issue is more informative than text on slides, change it
+- We had more time than usual for the holy trinity part. At the end, there were some good questions about projects: what to do with scratch code; how can someone make sense of a project they receive, even if it's organized as L suggests
+- The final exercise is a tiny bit awkward... they take a lot of time but it's mostly to find the snippets of code to copy and paste than for any understanding.
+- `git-python` should be installed on the students' machines in Prague!
